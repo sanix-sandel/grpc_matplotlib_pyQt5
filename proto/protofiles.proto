@@ -1,0 +1,19 @@
+syntax="proto3";
+
+
+message DataRequest{
+  repeated double x=1;
+  repeated double y=2;
+}
+
+message array{
+  repeated double z=1;
+}
+
+message DataResponse{
+  repeated array z=1;
+}
+
+service ComputeFunction{
+  rpc compute(DataRequest)returns (DataResponse);
+}
