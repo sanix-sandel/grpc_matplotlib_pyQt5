@@ -29,7 +29,7 @@ class ComputeFunctionServicer(protofiles_pb2_grpc.ComputeFunctionServicer):
             zr=protofiles_pb2.array()
             zr.z.extend(zarr)
             Z.z.extend([zr])
-        print("Type of ", type(Z))
+        #print("Type of ", type(Z))
         return Z
         #print("Z : ", Z)
 

@@ -5,6 +5,7 @@ import matplotlib
 matplotlib.use('Qt5Agg')
 
 from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import *
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 
@@ -15,41 +16,66 @@ import grpc
 import protofiles_pb2
 import protofiles_pb2_grpc
 
-"""
-def run():
-    channel = grpc.insecure_channel("localhost:5000")
-    stub = protofiles_pb2_grpc.ComputeFunctionStub(channel)
 
-   # x=protofiles_pb2.x(elt=x)
-    #y=protofiles_pb2.y(elt=y)
+class Dialog(QDialog):
+    #NumGridRows = 3
+    #NumButtons = 4
 
-    request=protofiles_pb2.DataRequest()
-    print(request)
-    request.x.extend([1.01, 2.34, 2.02])
-    request.y.extend([8.4, 2.1, 8.9])
-    #print(request)
-    print(stub.compute(request))
+    def __init__(self):
+        self.x = QLineEdit()
+        self.y = QLineEdit()
+        super(Dialog, self).__init__()
+        self.createFormGroupBox()
+
+        #buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        ##buttonBox.accepted.connect(self.accept)
+        #buttonBox.rejected.connect(self.reject)
+
+        # creating a dialog button for ok and cancel
+        self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+
+        # adding action when form is accepted
+        self.buttonBox.accepted.connect(self.getInfo)
+
+        # addding action when form is rejected
+        self.buttonBox.rejected.connect(self.reject)
+
+        mainLayout = QVBoxLayout()
 
 
-if __name__=='__main__':
-    run()
-"""
+
+        mainLayout.addWidget(self.formGroupBox)
+        mainLayout.addWidget(self.buttonBox)
+        self.setLayout(mainLayout)
+
+
+
+        self.setWindowTitle("Complete the form")
+
+    def createFormGroupBox(self):
+        self.formGroupBox = QGroupBox("Complete the form")
+        layout = QFormLayout()
+        layout.addRow(QLabel("X:"), self.x)
+        layout.addRow(QLabel("Y:"), self.y)
+
+        self.formGroupBox.setLayout(layout)
+
+    def getInfo(self):
+        # printing the form information
+        print("X", self.x.text())
+        print("Y", self.y.text())
+
+        # closing the window
+        self.close()
 
 
 class MplCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None):
-        # fig = Figure(figsize=(width, height), dpi=dpi)
-
-
-
         fig = plt.figure()
         self.ax = plt.axes(projection="3d")
         self.plotit()
         super(MplCanvas, self).__init__(fig)
-
-    #def z_function(self, x, y):  # to the server
-    #    return np.cos(x) * np.sin(y)  # np.sin(np.sqrt(x ** 2 + y ** 2))
 
     def plotit(self):
         self.x = np.linspace(-6, 6, 30)
@@ -60,13 +86,9 @@ class MplCanvas(FigureCanvasQTAgg):
         self.Z = [] # from the server
        # print(" Z :", [x for x in self.Z.z], "\n")
         for x in self.run().z:
-
-            print("type x: ",type(x))
-
-            #print([i for i in x.z])
             i=[i for i in x.z]
             self.Z.extend([i])
-        print("Z : ", self.Z)
+        #print("Z received : ", self.Z)
 
         self.ax = plt.axes(projection='3d')
         self.ax.plot_surface(self.X, self.Y, np.array(self.Z), rstride=1, cstride=1,
@@ -88,28 +110,27 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
-
-        # Create the maptlotlib FigureCanvas object,
-        # which defines a single set of axes as self.axes.
         sc = MplCanvas(self)
-        # sc.axes.plot([0,1,2,3,4], [10,1,20,3,40])
+        form=Dialog()
+
 
         self.setWindowTitle("my first window")
 
-        toolbar = NavigationToolbar(sc, self)
+
+
+        #toolbar = NavigationToolbar(sc, self)
 
         layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(toolbar)
+        layout.addWidget(form)
         layout.addWidget(sc)
 
         # Create a placeholder widget to hold our toolbar and canvas.
         widget = QtWidgets.QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)
-
         self.show()
 
-
-app = QtWidgets.QApplication(sys.argv)
-w = MainWindow()
-app.exec_()
+if __name__=='__main__':
+    app = QtWidgets.QApplication(sys.argv)
+    w = MainWindow()
+    app.exec_()
