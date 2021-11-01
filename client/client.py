@@ -78,14 +78,14 @@ class MplCanvas(FigureCanvasQTAgg):
         super(MplCanvas, self).__init__(fig)
 
     def plotit(self):
-        self.x = np.linspace(-6, 6, 30)
-        self.y = np.linspace(-6, 6, 30)#=>request(x=self.x, y=self.y)
+        self.x = np.linspace(-6, 6, 180)
+        self.y = np.linspace(-6, 6, 180)#=>request(x=self.x, y=self.y)
 
         self.X, self.Y = np.meshgrid(self.x, self.y)#be removed
 
         self.Z = [] # from the server
        # print(" Z :", [x for x in self.Z.z], "\n")
-        for x in self.run().z:
+        for x in self.run():
             i=[i for i in x.z]
             self.Z.extend([i])
         #print("Z received : ", self.Z)
@@ -103,7 +103,7 @@ class MplCanvas(FigureCanvasQTAgg):
         request=protofiles_pb2.DataRequest()
         request.x.extend(self.x.tolist())
         request.y.extend(self.y.tolist())
-        return stub.compute(request)
+        return stub.compute(request).z
 
 
 class MainWindow(QtWidgets.QMainWindow):
