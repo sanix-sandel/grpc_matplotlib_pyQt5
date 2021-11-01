@@ -1,13 +1,13 @@
 import sys
+import time
 
 import matplotlib
 
 matplotlib.use('Qt5Agg')
 
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import *
 
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,84 +17,35 @@ import protofiles_pb2
 import protofiles_pb2_grpc
 
 
-class Dialog(QDialog):
-    #NumGridRows = 3
-    #NumButtons = 4
-
-    def __init__(self):
-        self.x = QLineEdit()
-        self.y = QLineEdit()
-        super(Dialog, self).__init__()
-        self.createFormGroupBox()
-
-        #buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        ##buttonBox.accepted.connect(self.accept)
-        #buttonBox.rejected.connect(self.reject)
-
-        # creating a dialog button for ok and cancel
-        self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-
-        # adding action when form is accepted
-        self.buttonBox.accepted.connect(self.getInfo)
-
-        # addding action when form is rejected
-        self.buttonBox.rejected.connect(self.reject)
-
-        mainLayout = QVBoxLayout()
-
-
-
-        mainLayout.addWidget(self.formGroupBox)
-        mainLayout.addWidget(self.buttonBox)
-        self.setLayout(mainLayout)
-
-
-
-        self.setWindowTitle("Complete the form")
-
-    def createFormGroupBox(self):
-        self.formGroupBox = QGroupBox("Complete the form")
-        layout = QFormLayout()
-        layout.addRow(QLabel("X:"), self.x)
-        layout.addRow(QLabel("Y:"), self.y)
-
-        self.formGroupBox.setLayout(layout)
-
-    def getInfo(self):
-        # printing the form information
-        print("X", self.x.text())
-        print("Y", self.y.text())
-
-        # closing the window
-        self.close()
-
-
 class MplCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None):
+
         fig = plt.figure()
         self.ax = plt.axes(projection="3d")
-        self.plotit()
+
         super(MplCanvas, self).__init__(fig)
 
-    def plotit(self):
-        self.x = np.linspace(-6, 6, 30)
-        self.y = np.linspace(-6, 6, 30)#=>request(x=self.x, y=self.y)
+        self.x = np.linspace(-6, 6, 120)
+        self.y = np.linspace(-6, 6, 120)
 
-        self.X, self.Y = np.meshgrid(self.x, self.y)#be removed
+    #def plotit(self):
 
-        self.Z = [] # from the server
-       # print(" Z :", [x for x in self.Z.z], "\n")
-        for x in self.run().z:
-            i=[i for i in x.z]
-            self.Z.extend([i])
-        #print("Z received : ", self.Z)
+        #self.x = np.linspace(-6, 6, 120)
+        #self.y = np.linspace(-6, 6, 120)#=>request(x=self.x, y=self.y)
 
-        self.ax = plt.axes(projection='3d')
-        self.ax.plot_surface(self.X, self.Y, np.array(self.Z), rstride=1, cstride=1,
-                             cmap='winter', edgecolor='none')
-        self.ax.set_title('surface');
-        # plt.show()
+        #self.X, self.Y = np.meshgrid(self.x, self.y)#be removed
+
+        #self.Z = [] # from th    server
+        #for x in self.run().z:
+        #    i=[i for i in x.z]
+        #    self.Z.extend([i])
+
+
+       # time.sleep(5)
+        #self.ax.plot_surface(self.X, self.Y, np.array(self.Z), rstride=1, cstride=1,
+        #                     cmap='winter', edgecolor='none')
+        #self.ax.set_title('surface')
 
     def run(self):
         channel=grpc.insecure_channel("localhost:5000")
@@ -103,7 +54,10 @@ class MplCanvas(FigureCanvasQTAgg):
         request=protofiles_pb2.DataRequest()
         request.x.extend(self.x.tolist())
         request.y.extend(self.y.tolist())
-        return stub.compute(request)
+        for part in stub.compute(request).z:
+            print("z received")
+
+
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -111,20 +65,11 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         sc = MplCanvas(self)
-        form=Dialog()
-
-
         self.setWindowTitle("my first window")
-
-
-
-        #toolbar = NavigationToolbar(sc, self)
-
         layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(form)
         layout.addWidget(sc)
-
-        # Create a placeholder widget to hold our toolbar and canvas.
+        #sc.plotit()
+        sc.run()
         widget = QtWidgets.QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)

@@ -15,5 +15,5 @@ message DataResponse{
 }
 
 service ComputeFunction{
-  rpc compute(DataRequest)returns (DataResponse);
+  rpc compute(DataRequest)returns (stream DataResponse);
 }

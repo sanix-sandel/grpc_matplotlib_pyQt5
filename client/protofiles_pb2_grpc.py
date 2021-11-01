@@ -14,7 +14,7 @@ class ComputeFunctionStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.compute = channel.unary_unary(
+        self.compute = channel.unary_stream(
                 '/ComputeFunction/compute',
                 request_serializer=protofiles__pb2.DataRequest.SerializeToString,
                 response_deserializer=protofiles__pb2.DataResponse.FromString,
@@ -33,7 +33,7 @@ class ComputeFunctionServicer(object):
 
 def add_ComputeFunctionServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'compute': grpc.unary_unary_rpc_method_handler(
+            'compute': grpc.unary_stream_rpc_method_handler(
                     servicer.compute,
                     request_deserializer=protofiles__pb2.DataRequest.FromString,
                     response_serializer=protofiles__pb2.DataResponse.SerializeToString,
@@ -59,7 +59,7 @@ class ComputeFunction(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/ComputeFunction/compute',
+        return grpc.experimental.unary_stream(request, target, '/ComputeFunction/compute',
             protofiles__pb2.DataRequest.SerializeToString,
             protofiles__pb2.DataResponse.FromString,
             options, channel_credentials,
