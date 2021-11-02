@@ -26,6 +26,7 @@ class ComputeFunctionServicer(protofiles_pb2_grpc.ComputeFunctionServicer):
         self.X, self.Y = np.meshgrid(np.array(request.x), np.array(request.y))
         z = self.z_function(self.X, self.Y)
         z = z.tolist()
+
         for i in range(0, 3):
             Z = protofiles_pb2.DataResponse()
             for zarr in z:
@@ -45,7 +46,7 @@ server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
 protofiles_pb2_grpc.add_ComputeFunctionServicer_to_server(ComputeFunctionServicer(), server)
 
-print('Starting server. Listening on port 5000')
+print('Starting server. Listening on port 5000 - Streaming ')
 
 server.add_insecure_port('[::]:5000')
 server.start()

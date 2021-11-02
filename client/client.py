@@ -19,14 +19,24 @@ import protofiles_pb2_grpc
 
 def run():
     channel = grpc.insecure_channel("localhost:5000")
+    try:
+        grpc.channel_ready_future(channel).result(timeout=10)
+    except grpc.FutureTimeoutError:
+        sys.exit('Error connecting to server')
+
     stub = protofiles_pb2_grpc.ComputeFunctionStub(channel)
-    x = np.linspace(-6, 6, 120)
-    y = np.linspace(-6, 6, 120)
+    x = np.linspace(-6, 6, 10)
+    y = np.linspace(-6, 6, 10)
+
     request = protofiles_pb2.DataRequest()
     request.x.extend(x.tolist())
     request.y.extend(y.tolist())
-    return stub.compute(request)
-    #print(parts)
+
+    parts=stub.compute(request)
+    time.sleep(10)
+    for x in parts:
+        print('One part  ')
+        print(x)
 
 if __name__=='__main__':
     run()
