@@ -21,21 +21,20 @@ class ComputeFunctionServicer(protofiles_pb2_grpc.ComputeFunctionServicer):
         return np.tan(X) * np.sin(Y)
 
     def compute(self, request, context):
+        print('server called')
+
         self.X, self.Y = np.meshgrid(np.array(request.x), np.array(request.y))
         z = self.z_function(self.X, self.Y)
         z = z.tolist()
-        Z=protofiles_pb2.DataResponse()
+        for i in range(0, 3):
+            Z = protofiles_pb2.DataResponse()
+            for zarr in z:
+                zr=protofiles_pb2.array()
+                zr.z.extend(zarr)
+                Z.z.extend([zr])
+            yield Z
 
-        for zarr in z:
-            zr=protofiles_pb2.array()
-            zr.z.extend(zarr)
-            Z.z.extend([zr])
 
-        i=0
-        while i<101:
-            i+=2
-            print(Z[:i])
-            yield Z[:i]
         #return Z
 
 

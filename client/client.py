@@ -17,6 +17,21 @@ import protofiles_pb2
 import protofiles_pb2_grpc
 
 
+def run():
+    channel = grpc.insecure_channel("localhost:5000")
+    stub = protofiles_pb2_grpc.ComputeFunctionStub(channel)
+    x = np.linspace(-6, 6, 120)
+    y = np.linspace(-6, 6, 120)
+    request = protofiles_pb2.DataRequest()
+    request.x.extend(x.tolist())
+    request.y.extend(y.tolist())
+    return stub.compute(request)
+    #print(parts)
+
+if __name__=='__main__':
+    run()
+
+"""
 class MplCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None):
@@ -28,7 +43,7 @@ class MplCanvas(FigureCanvasQTAgg):
 
         self.x = np.linspace(-6, 6, 120)
         self.y = np.linspace(-6, 6, 120)
-
+        self.run()
     #def plotit(self):
 
         #self.x = np.linspace(-6, 6, 120)
@@ -54,8 +69,9 @@ class MplCanvas(FigureCanvasQTAgg):
         request=protofiles_pb2.DataRequest()
         request.x.extend(self.x.tolist())
         request.y.extend(self.y.tolist())
-        for part in stub.compute(request).z:
-            print("z received")
+        parts=stub.compute(request)
+        print(parts)
+
 
 
 
@@ -69,7 +85,6 @@ class MainWindow(QtWidgets.QMainWindow):
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(sc)
         #sc.plotit()
-        sc.run()
         widget = QtWidgets.QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)
@@ -79,3 +94,4 @@ if __name__=='__main__':
     app = QtWidgets.QApplication(sys.argv)
     w = MainWindow()
     app.exec_()
+"""""
