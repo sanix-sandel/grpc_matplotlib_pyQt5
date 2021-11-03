@@ -64,9 +64,11 @@ class MplCanvas(FigureCanvasQTAgg):
         self.X, self.Y = np.meshgrid(self.x, self.y)#be removed
 
         self.Z = [] # from th    server
-        #for x in next(self.run()):
-        #    i=[i for i in x.z]
-        #    self.Z.extend([i])
+        self.a=None
+        self.run()
+        for x in self.a.z:
+            i=[i for i in x.z]
+            self.Z.extend([i])
 
         #self.ax.plot_surface(self.X, self.Y, np.array(self.Z), rstride=1, cstride=1,
          #                    cmap='winter', edgecolor='none')
@@ -86,15 +88,19 @@ class MplCanvas(FigureCanvasQTAgg):
         request.y.extend(self.y.tolist())
 
         parts = stub.compute(request)
+
         for i in parts:
-            a = next(parts)
-            print(' Z received')
-            #yield a.z
+            self.a=next(parts)
+            print(dir(self.a))
+        #for i in parts:
+        #    a = next(parts)
+        #    print(' Z received')
+        #    yield a.z
 
 
 if __name__=='__main__':
     sc = MplCanvas()
-    sc.run()
+    sc.plotit()
 
 
 
