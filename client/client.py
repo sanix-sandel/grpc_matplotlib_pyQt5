@@ -25,18 +25,21 @@ def run():
         sys.exit('Error connecting to server')
 
     stub = protofiles_pb2_grpc.ComputeFunctionStub(channel)
-    x = np.linspace(-6, 6, 10)
-    y = np.linspace(-6, 6, 10)
+    x = np.linspace(-6, 6, 5)
+    y = np.linspace(-6, 6, 5)
 
     request = protofiles_pb2.DataRequest()
     request.x.extend(x.tolist())
     request.y.extend(y.tolist())
 
     parts=stub.compute(request)
-    time.sleep(10)
-    for x in parts:
-        print('One part  ')
-        print(x)
+    for x in range(0, 3):
+        print('Data Received from server ', x)
+        a=next(parts)
+        print(a.z[0])
+        if x!=2:
+            time.sleep(4)
+
 
 if __name__=='__main__':
     run()

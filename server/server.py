@@ -35,6 +35,8 @@ class ComputeFunctionServicer(protofiles_pb2_grpc.ComputeFunctionServicer):
                 Z.z.extend([zr])
             yield Z
 
+            print('Z yield')
+            time.sleep(4)
 
         #return Z
 
