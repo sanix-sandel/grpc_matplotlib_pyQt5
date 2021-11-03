@@ -26,19 +26,18 @@ class ComputeFunctionServicer(protofiles_pb2_grpc.ComputeFunctionServicer):
         self.X, self.Y = np.meshgrid(np.array(request.x), np.array(request.y))
         z = self.z_function(self.X, self.Y)
         z = z.tolist()
-
-        for i in range(0, 3):
+        i=0
+        while i<4:
             Z = protofiles_pb2.DataResponse()
             for zarr in z:
                 zr=protofiles_pb2.array()
                 zr.z.extend(zarr)
                 Z.z.extend([zr])
+            print(i, ' Z yield')
             yield Z
-
-            print('Z yield')
+            i+=1
             time.sleep(4)
 
-        #return Z
 
 
 

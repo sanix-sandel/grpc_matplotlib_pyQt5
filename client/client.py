@@ -16,7 +16,7 @@ import grpc
 import protofiles_pb2
 import protofiles_pb2_grpc
 
-
+""""
 def run():
     channel = grpc.insecure_channel("localhost:5000")
     try:
@@ -37,14 +37,13 @@ def run():
         print('Data Received from server ', x)
         a=next(parts)
         print(a.z[0])
-        if x!=2:
-            time.sleep(4)
+       
 
-
-if __name__=='__main__':
-    run()
-
+run()
 """
+
+
+
 class MplCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None):
@@ -57,34 +56,51 @@ class MplCanvas(FigureCanvasQTAgg):
         self.x = np.linspace(-6, 6, 120)
         self.y = np.linspace(-6, 6, 120)
         self.run()
-    #def plotit(self):
+    def plotit(self):
 
-        #self.x = np.linspace(-6, 6, 120)
-        #self.y = np.linspace(-6, 6, 120)#=>request(x=self.x, y=self.y)
+        self.x = np.linspace(-6, 6, 120)
+        self.y = np.linspace(-6, 6, 120)#=>request(x=self.x, y=self.y)
 
-        #self.X, self.Y = np.meshgrid(self.x, self.y)#be removed
+        self.X, self.Y = np.meshgrid(self.x, self.y)#be removed
 
-        #self.Z = [] # from th    server
-        #for x in self.run().z:
+        self.Z = [] # from th    server
+        #for x in next(self.run()):
         #    i=[i for i in x.z]
         #    self.Z.extend([i])
 
-
-       # time.sleep(5)
         #self.ax.plot_surface(self.X, self.Y, np.array(self.Z), rstride=1, cstride=1,
-        #                     cmap='winter', edgecolor='none')
+         #                    cmap='winter', edgecolor='none')
         #self.ax.set_title('surface')
 
     def run(self):
-        channel=grpc.insecure_channel("localhost:5000")
-        stub=protofiles_pb2_grpc.ComputeFunctionStub(channel)
+        print('run ')
+        channel = grpc.insecure_channel("localhost:5000")
+        try:
+            grpc.channel_ready_future(channel).result(timeout=10)
+        except grpc.FutureTimeoutError:
+            sys.exit('Error connecting to server')
+        stub = protofiles_pb2_grpc.ComputeFunctionStub(channel)
 
-        request=protofiles_pb2.DataRequest()
+        request = protofiles_pb2.DataRequest()
         request.x.extend(self.x.tolist())
         request.y.extend(self.y.tolist())
-        parts=stub.compute(request)
-        print(parts)
 
+        parts = stub.compute(request)
+        for i in parts:
+            a = next(parts)
+            print(' Z received')
+            #yield a.z
+
+
+if __name__=='__main__':
+    sc = MplCanvas()
+    sc.run()
+
+
+
+
+
+""""
 
 
 
@@ -97,14 +113,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle("my first window")
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(sc)
-        #sc.plotit()
+        sc.plotit()
+        #sc.run()
         widget = QtWidgets.QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)
-        self.show()
+       # self.show()
 
 if __name__=='__main__':
     app = QtWidgets.QApplication(sys.argv)
     w = MainWindow()
     app.exec_()
+    
 """""
