@@ -1,7 +1,10 @@
 import sys
+import threading
 import time
 
 import matplotlib
+from PyQt5.QtCore import QObject, pyqtSignal
+from matplotlib.animation import TimedAnimation
 
 matplotlib.use('Qt5Agg')
 
@@ -44,39 +47,69 @@ run()
 
 
 
-class MplCanvas(FigureCanvasQTAgg):
+
+
+
+
+class Communicate(QObject):
+    data_signal = pyqtSignal(float)
+
+
+
+
+
+class MplCanvas(FigureCanvasQTAgg, TimedAnimation):
 
     def __init__(self, parent=None):
-
         fig = plt.figure()
         self.ax = plt.axes(projection="3d")
-
         super(MplCanvas, self).__init__(fig)
-
         self.x = np.linspace(-6, 6, 120)
         self.y = np.linspace(-6, 6, 120)
-        self.run()
+        self.Z = []
+        myDataLoop = threading.Thread(name='myDataLoop', target=self.receiveData, daemon=True,
+                                      args=())
+        myDataLoop.start()
+        TimedAnimation.__init__(self, fig, interval=50, blit=True)
+
+
+    def new_frame_seq(self):
+        return iter(range(self.x.size))
+
     def plotit(self):
-
-        self.x = np.linspace(-6, 6, 120)
-        self.y = np.linspace(-6, 6, 120)#=>request(x=self.x, y=self.y)
-
+        time.sleep(4)
         self.X, self.Y = np.meshgrid(self.x, self.y)#be removed
+        #self.Z=np.cos(self.X)*np.sin(self.Y)
+        self.ax.plot_surface(self.X, self.Y, np.array(self.Z), rstride=1, cstride=1,
+                             cmap='winter', edgecolor='none')
+        self.ax.set_title('surface')
 
-        self.Z = [] # from th    server
-        self.a=None
+
+    def _step(self, *args):
+        # Extends the _step() method for the TimedAnimation class.
+        try:
+            TimedAnimation._step(self, *args)
+        except Exception as e:
+            #self.abc += 1
+            #print(str(self.abc))
+            TimedAnimation._stop(self)
+            pass
+        return
+
+    def receiveData(self):
+        print('rece')
         self.run()
-        for x in self.a.z:
-            i=[i for i in x.z]
-            self.Z.extend([i])
 
-        #self.ax.plot_surface(self.X, self.Y, np.array(self.Z), rstride=1, cstride=1,
-         #                    cmap='winter', edgecolor='none')
-        #self.ax.set_title('surface')
+    #def addData_callbackFunc(self):
+    #    for x in next(run()):
+    #        i = [i for i in x.z]
+    #        self.Z.extend([i])
+    #    return
 
     def run(self):
-        print('run ')
         channel = grpc.insecure_channel("localhost:5000")
+        #mySrc = Communicate()
+        #mySrc.data_signal.connect(addData_callbackFunc)
         try:
             grpc.channel_ready_future(channel).result(timeout=10)
         except grpc.FutureTimeoutError:
@@ -86,29 +119,13 @@ class MplCanvas(FigureCanvasQTAgg):
         request = protofiles_pb2.DataRequest()
         request.x.extend(self.x.tolist())
         request.y.extend(self.y.tolist())
-
-        parts = stub.compute(request)
-
-        for i in parts:
-            self.a=next(parts)
-            print(dir(self.a))
-        #for i in parts:
-        #    a = next(parts)
-        #    print(' Z received')
-        #    yield a.z
-
-
-if __name__=='__main__':
-    sc = MplCanvas()
-    sc.plotit()
-
-
-
-
-
-""""
-
-
+        a=stub.compute(request)
+        print(dir(a))
+        self.Z=[]
+        for x in next(a).z:
+            i=[i for i in x.z]
+            self.Z.extend([i])
+        #print(self.Z)
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -120,15 +137,12 @@ class MainWindow(QtWidgets.QMainWindow):
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(sc)
         sc.plotit()
-        #sc.run()
         widget = QtWidgets.QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)
-       # self.show()
+        self.show()
 
 if __name__=='__main__':
     app = QtWidgets.QApplication(sys.argv)
     w = MainWindow()
     app.exec_()
-    
-"""""
