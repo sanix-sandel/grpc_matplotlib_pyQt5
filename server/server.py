@@ -33,7 +33,7 @@ class ComputeFunctionServicer(protofiles_pb2_grpc.ComputeFunctionServicer):
                 zr=protofiles_pb2.array()
                 zr.z.extend(zarr)
                 Z.z.extend([zr])
-            print(i, ' Z yield')
+            print(i, ' Data sent to the client !')
             yield Z
             i+=1
             time.sleep(4)

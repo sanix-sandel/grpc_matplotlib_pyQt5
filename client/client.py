@@ -74,12 +74,13 @@ class App:
         self.rungrpc()
         root.mainloop()
 
+
     def animation(self):
         self.ani = animation.FuncAnimation(self.fig, self.data, fargs=(self.Z, self.line), interval=200, blit=False)
 
     def data(self, i, z, line):
         # z = np.sin(x+y+i)
-        print('Checking for new data :) ')
+        print('Checking for new data from the server :) ')
         # time.sleep(4)
         self.Z = np.cos(self.X) * np.sin(self.Y)
         self.ax.clear()
@@ -103,7 +104,7 @@ class App:
 
         parts = stub.compute(request)
         for x in parts:
-            print('Data Received from server ')
+            print('Data found ! Received from the server ')
             a = x
             #print(dir(a))
             # a=next(parts)
