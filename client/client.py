@@ -1,13 +1,18 @@
+import sys
 import threading
 import tkinter as tk
 
 import tkinter as tk
+
+import grpc
 from mpl_toolkits import mplot3d
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib;
+
+import protofiles_pb2_grpc, protofiles_pb2
 
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -66,6 +71,7 @@ class App:
         self.ani = None
         myThread = threading.Thread(target=self.animation)
         myThread.start()
+        self.rungrpc()
         root.mainloop()
 
     def animation(self):
@@ -73,12 +79,36 @@ class App:
 
     def data(self, i, z, line):
         # z = np.sin(x+y+i)
-        print('called')
+        print('Checking for new data :) ')
         # time.sleep(4)
         self.Z = np.cos(self.X) * np.sin(self.Y)
         self.ax.clear()
         self.line = self.ax.plot_surface(self.X, self.Y, self.Z, color='b')
         return self.line,
+
+    def rungrpc(self):
+        channel = grpc.insecure_channel("localhost:5000")
+        try:
+            grpc.channel_ready_future(channel).result(timeout=10)
+        except grpc.FutureTimeoutError:
+            sys.exit('Error connecting to server')
+
+        stub = protofiles_pb2_grpc.ComputeFunctionStub(channel)
+        x = np.linspace(-6, 6, 5)
+        y = np.linspace(-6, 6, 5)
+
+        request = protofiles_pb2.DataRequest()
+        request.x.extend(x.tolist())
+        request.y.extend(y.tolist())
+
+        parts = stub.compute(request)
+        for x in parts:
+            print('Data Received from server ')
+            a = x
+            #print(dir(a))
+            # a=next(parts)
+            # print(a.z[0])
+
 
 
 """
