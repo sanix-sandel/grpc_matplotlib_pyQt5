@@ -18,6 +18,32 @@ matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import time
 
+Z=[]
+
+def rungrpc():
+
+    print('yeah')
+    #global Z
+    channel = grpc.insecure_channel("localhost:5000")
+    try:
+        grpc.channel_ready_future(channel).result(timeout=10)
+    except grpc.FutureTimeoutError:
+        sys.exit('Error connecting to server')
+
+    stub = protofiles_pb2_grpc.ComputeFunctionStub(channel)
+    x = np.linspace(-6, 6, 5)
+    y = np.linspace(-6, 6, 5)
+
+    request = protofiles_pb2.DataRequest()
+    request.x.extend(x.tolist())
+    request.y.extend(y.tolist())
+
+    parts = stub.compute(request)
+    for x in parts:
+        print('Data found ! Received from the server ')
+        a = x
+        yield a.z
+
 
 class App:
     def __init__(self):
@@ -61,7 +87,11 @@ class App:
         self.x = np.linspace(-6, 6, 120)
         self.y = np.linspace(-6, 6, 120)
         self.X, self.Y = np.meshgrid(self.x, self.y)
-        self.Z = np.sin(self.X) * np.cos(self.Y)
+
+
+
+        self.Z = np.cos(self.X)*np.sin(self.Y)
+       # self.Z = np.sin(self.X) * np.cos(self.Y)
         self.line = self.ax.plot_surface(self.X[:60], self.Y[:60], self.Z[:60], rstride=1, cstride=1,
                                          cmap='winter', edgecolor='none')
 
@@ -69,9 +99,15 @@ class App:
         # self.canvas.get_tk_widget().create_rectangle(200, 100, 700, 500, fill="BLUE")
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
         self.ani = None
+
+        grpcThread = threading.Thread(target=rungrpc)
+        grpcThread.start()
+
         myThread = threading.Thread(target=self.animation)
         myThread.start()
-        self.rungrpc()
+
+
+
         root.mainloop()
 
 
@@ -86,29 +122,6 @@ class App:
         self.ax.clear()
         self.line = self.ax.plot_surface(self.X, self.Y, self.Z, color='b')
         return self.line,
-
-    def rungrpc(self):
-        channel = grpc.insecure_channel("localhost:5000")
-        try:
-            grpc.channel_ready_future(channel).result(timeout=10)
-        except grpc.FutureTimeoutError:
-            sys.exit('Error connecting to server')
-
-        stub = protofiles_pb2_grpc.ComputeFunctionStub(channel)
-        x = np.linspace(-6, 6, 5)
-        y = np.linspace(-6, 6, 5)
-
-        request = protofiles_pb2.DataRequest()
-        request.x.extend(x.tolist())
-        request.y.extend(y.tolist())
-
-        parts = stub.compute(request)
-        for x in parts:
-            print('Data found ! Received from the server ')
-            a = x
-            #print(dir(a))
-            # a=next(parts)
-            # print(a.z[0])
 
 
 
@@ -141,5 +154,7 @@ def run():
 
 # Launch ...
 if __name__ == '__main__':
-    app = App()
-    app.exec_()
+    rungrpc()
+
+   # app = App()
+   # app.exec_()
