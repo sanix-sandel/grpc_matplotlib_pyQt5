@@ -112,7 +112,7 @@ class App:
         time.sleep(4)
 
         self.Z = np.array(Z)
-        self.line = self.ax.plot_surface(self.X[:60], self.Y[:60], self.Z[:60], rstride=1, cstride=1,
+        self.line = self.ax.plot_surface(self.X, self.Y, self.Z, rstride=1, cstride=1,
                                          cmap='winter', edgecolor='none')
 
         self.canvas = FigureCanvasTkAgg(self.fig, master=root)
@@ -152,14 +152,14 @@ class App:
             print(len(self.Z))
             self.X=self.X[:len(self.Z)]
             self.Y=self.Y[:len(self.Z)]
-            self.line = self.ax.plot_surface(self.X, self.Y, self.Z, color='b')
+            self.line = self.ax.plot_surface(self.X, self.Y, self.Z, cmap='summer')
             return self.line
             print('Data received')
         except:
             print('Data not received yet, Waiting ')
             #self.ax.clear()
             print(len(self.Z))
-            self.line = self.ax.plot_surface(self.X, self.Y, self.Z, color='b')
+            self.line = self.ax.plot_surface(self.X, self.Y, self.Z, cmap='spring')
             return self.line
         #finally:
         #    return self.line,

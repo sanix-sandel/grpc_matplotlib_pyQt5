@@ -31,7 +31,7 @@ class ComputeFunctionServicer(protofiles_pb2_grpc.ComputeFunctionServicer):
         while i<4:
             Z = protofiles_pb2.DataResponse()
             if i==3:
-                z=z[:40]
+                z=z[:60]
                 for zarr in z:
                     zr=protofiles_pb2.array()
                     zr.z.extend(zarr)
