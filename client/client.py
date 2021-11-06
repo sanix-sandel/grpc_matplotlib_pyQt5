@@ -19,11 +19,13 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import time
 
 Z=[]
+parts=None
 
 def rungrpc():
 
     print('yeah')
     global Z
+    global parts
     channel = grpc.insecure_channel("localhost:5000")
     try:
         grpc.channel_ready_future(channel).result(timeout=10)
@@ -45,7 +47,7 @@ def rungrpc():
     for elt in a.z:
         i = [i for i in elt.z]
         Z.extend([i])
-    print(len(Z))
+    #print(len(Z))
 
 
 #        i = [i for i in elt.z]
@@ -109,10 +111,7 @@ class App:
         grpcThread.start()
         time.sleep(4)
 
-        self.Z = np.array(Z)#np.cos(self.X)*np.sin(self.Y)
-        print(Z)
-
-       # self.Z = np.sin(self.X) * np.cos(self.Y)
+        self.Z = np.array(Z)
         self.line = self.ax.plot_surface(self.X[:60], self.Y[:60], self.Z[:60], rstride=1, cstride=1,
                                          cmap='winter', edgecolor='none')
 
@@ -141,10 +140,29 @@ class App:
         #print('Checking for new data from the server :) ')
         #print('The length of Z: ',len(Z))
         # time.sleep(4)
-        self.Z = np.cos(self.X) * np.sin(self.Y)
-        self.ax.clear()
-        self.line = self.ax.plot_surface(self.X, self.Y, self.Z, color='b')
-        return self.line,
+        #self.Z = np.cos(self.X) * np.sin(self.Y)
+        try:
+            a = next(parts)
+            Z=[]
+            for elt in a.z:
+                i = [i for i in elt.z]
+                Z.extend([i])
+            self.Z=np.array(Z)
+            self.ax.clear()
+            print(len(self.Z))
+            self.X=self.X[:len(self.Z)]
+            self.Y=self.Y[:len(self.Z)]
+            self.line = self.ax.plot_surface(self.X, self.Y, self.Z, color='b')
+            return self.line
+            print('Data received')
+        except:
+            print('Data not received yet, Waiting ')
+            #self.ax.clear()
+            print(len(self.Z))
+            self.line = self.ax.plot_surface(self.X, self.Y, self.Z, color='b')
+            return self.line
+        #finally:
+        #    return self.line,
 
 
 

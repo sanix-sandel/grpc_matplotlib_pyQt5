@@ -26,17 +26,25 @@ class ComputeFunctionServicer(protofiles_pb2_grpc.ComputeFunctionServicer):
         self.X, self.Y = np.meshgrid(np.array(request.x), np.array(request.y))
         z = self.z_function(self.X, self.Y)
         z = z.tolist()
+        print(len(z))
         i=1
         while i<4:
             Z = protofiles_pb2.DataResponse()
-            for zarr in z:
-                zr=protofiles_pb2.array()
-                zr.z.extend(zarr)
-                Z.z.extend([zr])
+            if i==3:
+                z=z[:40]
+                for zarr in z:
+                    zr=protofiles_pb2.array()
+                    zr.z.extend(zarr)
+                    Z.z.extend([zr])
+            else:
+                for zarr in z:
+                    zr=protofiles_pb2.array()
+                    zr.z.extend(zarr)
+                    Z.z.extend([zr])
             print(i, ' Data sent to the client !')
             yield Z
             i+=1
-            time.sleep(4)
+            time.sleep(8)
 
 
 
