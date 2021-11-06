@@ -18,7 +18,7 @@ class ComputeFunctionServicer(protofiles_pb2_grpc.ComputeFunctionServicer):
 
     def z_function(self, X, Y):
 
-        return np.tan(X) * np.sin(Y)
+        return np.cos(X) * np.sin(Y)
 
     def compute(self, request, context):
         print('server called')

@@ -23,7 +23,7 @@ Z=[]
 def rungrpc():
 
     print('yeah')
-    #global Z
+    global Z
     channel = grpc.insecure_channel("localhost:5000")
     try:
         grpc.channel_ready_future(channel).result(timeout=10)
@@ -31,18 +31,35 @@ def rungrpc():
         sys.exit('Error connecting to server')
 
     stub = protofiles_pb2_grpc.ComputeFunctionStub(channel)
-    x = np.linspace(-6, 6, 5)
-    y = np.linspace(-6, 6, 5)
+    x = np.linspace(-6, 6, 120)
+    y = np.linspace(-6, 6, 120)
 
     request = protofiles_pb2.DataRequest()
     request.x.extend(x.tolist())
     request.y.extend(y.tolist())
 
     parts = stub.compute(request)
-    for x in parts:
-        print('Data found ! Received from the server ')
-        a = x
-        yield a.z
+    a=next(parts)
+
+
+    for elt in a.z:
+        i = [i for i in elt.z]
+        Z.extend([i])
+    print(len(Z))
+
+
+#        i = [i for i in elt.z]
+#        Z.extend([i])
+
+    #for x in parts:
+    #    print('Data found ! Received from the server ')
+    #    a = x
+    #    for elt in a.z:
+    #        i = [i for i in elt.z]
+    #        Z.extend([i])
+
+        #Z=a.z
+
 
 
 class App:
@@ -88,9 +105,13 @@ class App:
         self.y = np.linspace(-6, 6, 120)
         self.X, self.Y = np.meshgrid(self.x, self.y)
 
+        grpcThread = threading.Thread(target=self.run)
+        grpcThread.start()
+        time.sleep(4)
 
+        self.Z = np.array(Z)#np.cos(self.X)*np.sin(self.Y)
+        print(Z)
 
-        self.Z = np.cos(self.X)*np.sin(self.Y)
        # self.Z = np.sin(self.X) * np.cos(self.Y)
         self.line = self.ax.plot_surface(self.X[:60], self.Y[:60], self.Z[:60], rstride=1, cstride=1,
                                          cmap='winter', edgecolor='none')
@@ -100,23 +121,25 @@ class App:
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
         self.ani = None
 
-        grpcThread = threading.Thread(target=rungrpc)
-        grpcThread.start()
+
 
         myThread = threading.Thread(target=self.animation)
         myThread.start()
 
 
-
         root.mainloop()
 
+    def run(self):
+        print('Calling gRPC')
+        rungrpc()
 
     def animation(self):
         self.ani = animation.FuncAnimation(self.fig, self.data, fargs=(self.Z, self.line), interval=200, blit=False)
 
     def data(self, i, z, line):
         # z = np.sin(x+y+i)
-        print('Checking for new data from the server :) ')
+        #print('Checking for new data from the server :) ')
+        #print('The length of Z: ',len(Z))
         # time.sleep(4)
         self.Z = np.cos(self.X) * np.sin(self.Y)
         self.ax.clear()
@@ -149,12 +172,12 @@ def run():
         print(dir(a))
         #a=next(parts)
         #print(a.z[0])
+
+
 """
-
-
 # Launch ...
 if __name__ == '__main__':
-    rungrpc()
 
-   # app = App()
-   # app.exec_()
+
+   app = App()
+   app.exec_()
